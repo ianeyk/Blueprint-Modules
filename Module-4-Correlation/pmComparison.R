@@ -4,7 +4,7 @@
 library(tidyverse)
 library(magrittr)
 
-# Clone the repo from xxxx
+# Clone the repo from https://github.com/ianeyk/Blueprint-Modules.git
 # and load the file "pmComparison.RData"
 
 # (change the path to the file you cloned.)
