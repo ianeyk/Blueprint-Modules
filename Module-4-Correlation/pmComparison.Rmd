@@ -14,9 +14,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r install}
 
-# if you haven't installed these libraries, use 
-install.packages("tidyverse")
-install.packages("magrittr")
+# if you have already installed these libraries, comment these lines out
+# install.packages("tidyverse")
+# install.packages("magrittr")
 
 ```
 
@@ -33,7 +33,7 @@ and load the file "pmComparison.RData"
 ```{r load}
 
 # (change the path below to the file you cloned.)
-load("C:/dev/Blueprint-Modules/Module-4-Correlation/pmComparison.RData")
+load("./pmComparison.RData")
 
 ```
 
