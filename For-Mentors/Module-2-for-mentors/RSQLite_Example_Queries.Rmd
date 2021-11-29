@@ -1,0 +1,200 @@
+---
+title: "RSQLite Example Queries"
+author: "Ian Eykamp"
+date: "11/29/2021"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## 4.2.2 Connect to the Database
+
+To start, create a connection to the database. Copy, paste, and run this
+command in RStudio:
+
+```{r}
+# install.packages("RSQLite") # comment this line out if RSQLite is already installed
+library(RSQLite)
+
+conn <- dbConnect(
+  drv = RSQLite::SQLite(), 
+  dbname = "C:/dev/sensorbot/sensorbot.db"
+) 
+```
+
+Note, SQL code is different from our other codes: users cannot type SQL
+code directly into RStudio. It needs to be in quotations and inside of
+parentheses after the command of `dbGetQuery`; see the blue highlight in
+the code as an example. Make every query with the `dbGetQuery` function
+with `conn` as the first argument, like so:
+
+```{r}
+dbGetQuery(conn, "SELECT * FROM device LIMIT 10")
+```
+
+## 4.2.3 Make Table Command
+
+Note the following definitions for the Make a Table command:
+
+-   `table_name`: Name of the table to be created.
+-   `column1`: Name of the first column and so on.
+-   `data_type`: Type of data that can be stored in the field.
+-   `size`: Size of the data that can be stored in a column. For
+    example, in a column, if you give the data_type as `varchar` and
+    size as 20, that column can store a string of 20 characters,
+    maximum.
+-   `constraint_name`: Name of the constraint. For example, `NOT NULL`,
+    `UNIQUE`, `PRIMARY KEY`.
+
+The following example is a box of template code. Running this will
+result in errors because terms like `data_type` and `constraint_name`
+need to be defined. Keep reading, and you'll find an example you can
+
+Template:
+
+```{r eval=FALSE}
+dbGetQuery(conn, "
+
+CREATE TABLE table_name ( 
+  column1 data_type(size) constraint_name,
+  column2 data_type(size) constraint_name, 
+  column3 data_type(size) constraint_name, 
+  .... 
+)
+
+")
+```
+
+Example:
+
+```{r}
+dbGetQuery(conn, "
+
+CREATE TABLE ts_kv_hourly ( 
+  entity_id STRING NOT NULL, 
+  key INT NOT NULL,
+  ts INT NOT NULL, 
+  val FLOAT NOT NULL, 
+)
+
+")
+```
+
+## 4.2.4 Select from Table Command
+
+Follow the same process for the Select from Table command. Review this
+template code to understand the pieces that go into the code needed to
+select from a table (like the table you just created using the template
+code).
+
+Template:
+
+```{r eval=FALSE}
+dbGetQuery(conn, "
+
+SELECT column1, column2 FROM table_name
+
+")
+```
+
+Remember, in SQL, `*` means "everything." Visit these helpful videos if
+you haven't already. Now, copy, paste, and run the following example in
+RStudio.
+
+Example:
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT * FROM device
+
+")
+```
+
+Notice how every column appears and many rows do as well? What part of
+this example query is causing all columns and rows to be returned?
+
+Now `SELECT` the first two columns from `ts_kv_dictionary`. What are the
+column names?
+
+Hint: to find the column names, scroll to the top of the `SELECT *`
+output.
+
+## 4.2.5 Insert Data Command
+
+To understand how the Insert Data command is built, review this
+template. Afterward, copy, paste, and run the example template in
+RStudio to see the results. Note the following definitions:
+
+-   `table_name`: The name of the table.
+
+-   `value1`, `value2`, `…`: The value of the first column, second
+    column, and so on, for the new record.
+
+Template:
+
+```{r eval=FALSE}
+dbGetQuery(conn, "
+
+INSERT INTO table_name VALUES (value1, value2, value3,...)
+
+")
+```
+
+Example:
+
+```{r}
+dbGetQuery(conn, "
+
+INSERT INTO ts_kv_dictionary VALUES ('rain', '23')
+
+")
+```
+
+This added a row for "rain" into our dictionary, with a key
+identification (`key_id`) of 23. Now try this function again, but add a
+row for "wildfire" and label that `key_id` as "24."
+
+## 4.2.6 Where Clause Command
+
+To understand how the Where Clause command is constructed, review this
+template. Afterward, copy, paste, and run the example template in
+RStudio to see the results. Note the following definitions:
+
+-    `column1` , `column2`: Fields in the table.
+
+-   `tableName`: Name of the table.
+
+-   `column_name`: Name of the field.
+
+-   `operator`: Operation to be performed for filtering.
+
+-   `value`: The exact value to get related data in a result.
+
+Table 4-1 defines the operators that apply to the Where Clause Command.
+
+Operator Description \> greater than \>= greater than or equal to \<
+less than \<= less than or equal to = equal to \<\> not equal to BETWEEN
+in an inclusive range LIKE search for a pattern IN define multiple
+likely values for a column
+
+Template:
+
+```{r eval=FALSE}
+dbGetQuery(conn, "
+
+SELECT column1,column2 FROM TableName WHERE column_name operator value;
+
+")
+```
+
+Example:
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT \* FROM ts_kv_hourly WHERE key = 10
+
+")
+```
