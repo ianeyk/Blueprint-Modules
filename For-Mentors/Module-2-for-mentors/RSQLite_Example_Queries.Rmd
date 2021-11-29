@@ -162,7 +162,7 @@ To understand how the Where Clause command is constructed, review this
 template. Afterward, copy, paste, and run the example template in
 RStudio to see the results. Note the following definitions:
 
--    `column1` , `column2`: Fields in the table.
+-   `column1` , `column2`: Fields in the table.
 
 -   `tableName`: Name of the table.
 
