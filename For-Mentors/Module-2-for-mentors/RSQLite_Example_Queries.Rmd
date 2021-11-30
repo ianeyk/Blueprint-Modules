@@ -234,7 +234,8 @@ WHERE key = 7
 ")
 ```
 
-4.2.8 Count Number of Entries (Total) Command To understand how the
+## 4.2.8 Count Number of Entries (Total) Command To understand how the
+
 Count Number of Entries (Total) command is built, review this template.
 Afterward, copy, paste, and run the example template in RStudio to see
 the results.
@@ -263,7 +264,8 @@ WHERE key = 7 OR 10 AND val > 500
 ")
 ```
 
-4.2.9 Combination Queries Command In this section, we will cover six
+## 4.2.9 Combination Queries Command In this section, we will cover six
+
 ways to use Combination Queries to pull data that match multiple search
 criteria. This will combine the queries we covered in previous sections
 (4.2.3 to 4.2.8)
