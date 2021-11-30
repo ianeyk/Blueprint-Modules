@@ -205,3 +205,151 @@ SELECT \* FROM ts_kv_hourly WHERE key = 10
 
 ")
 ```
+
+## 4.2.7 Min/Max Values Command
+
+To understand how the Min/Max Values command is built, review this
+template. Afterward, copy, paste, and run the example template in
+RStudio to see the results. Template:
+
+```{r eval=FALSE}
+dbGetQuery(conn, "
+
+SELECT max(val) 
+FROM TableName 
+WHERE column_name operator value; 
+
+")
+```
+
+Example:
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT max(val) 
+FROM ts_kv_hourly 
+WHERE key = 7 
+
+")
+```
+
+4.2.8 Count Number of Entries (Total) Command To understand how the
+Count Number of Entries (Total) command is built, review this template.
+Afterward, copy, paste, and run the example template in RStudio to see
+the results.
+
+Template:
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT COUNT(*) AS total 
+FROM table_name 
+WHERE column_name operator value; 
+ 
+")
+```
+
+Example:
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT COUNT(*) AS total 
+FROM ts_kv_hourly 
+WHERE key = 7 OR 10 AND val > 500 
+
+")
+```
+
+4.2.9 Combination Queries Command In this section, we will cover six
+ways to use Combination Queries to pull data that match multiple search
+criteria. This will combine the queries we covered in previous sections
+(4.2.3 to 4.2.8)
+
+1.  Count the number of readings where the particulate matter (PM)2.5 is
+    greater than 500.
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT COUNT(*) AS total 
+FROM ts_kv_hourly 
+WHERE key = 10 AND val > 500
+
+")
+```
+
+2.  Select the PM2.5 and the temperature for September 10 to 30, 2020.
+
+```{r eval=FALSE}
+dbGetQuery(conn, "
+
+SELECT * FROM ts_kv_hourly 
+WHERE key = 13 OR 16 AND 
+ts BETWEEN _____ AND _____
+
+")
+```
+
+Since the timestamp format is given in epoch milliseconds, for the
+BETWEEN values, use this website (Epoch time) to convert the time range
+to epoch timestamps and copy the Timestamp in milliseconds result to
+your query.
+
+For example, if you want to see only the data from between September 5
+and 10, 2020, your last line would be: \`ts BETWEEN 159928200000 AND
+1599721200000;
+
+3.  Covert timestamp to datetime format.
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT * FROM ts_kv_hourly 
+WHERE key = 13 OR 16 AND 
+datetime(round(ts / 1000), 'unixepoch', 'localtime') 
+BETWEEN 2020-09-10 00:00:00 AND 2020-09-30 23:59:59
+
+")
+```
+
+4.  Find the identification codes for each device managed by the
+    Department of Environmental Quality (DEQ).
+
+    Hint: They will be designated under a specific table
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT DISTINCT entity_id 
+FROM ts_kv_deq
+
+")
+```
+
+5.  Select the data from days where the temperature exceeded 90 degrees
+    Fahrenheit (F).
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT * FROM ts_kv 
+WHERE key = 16 AND dbl_v > (90-32) * 5/9; 
+
+")
+```
+
+6.  Select maximum or minimum readings for PM10 for October 31, 2020.
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT max(val) FROM ts_kv_hourly 
+WHERE key = 7 AND 
+datetime(round(ts / 1000), 'unixepoch', 'localtime') 
+BETWEEN 2020-10-30 00:00:00 AND 2020-09-30 01:01:01; 
+
+")
+```
