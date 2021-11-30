@@ -174,10 +174,17 @@ RStudio to see the results. Note the following definitions:
 
 Table 4-1 defines the operators that apply to the Where Clause Command.
 
-Operator Description \> greater than \>= greater than or equal to \<
-less than \<= less than or equal to = equal to \<\> not equal to BETWEEN
-in an inclusive range LIKE search for a pattern IN define multiple
-likely values for a column
+| Operator |                Description                 |
+|:--------:|:------------------------------------------:|
+|    \>    |                greater than                |
+|   \>=    |          greater than or equal to          |
+|    \<    |                 less than                  |
+|   \<=    |           less than or equal to            |
+|    =     |                  equal to                  |
+|   \<\>   |                not equal to                |
+| BETWEEN  |           in an inclusive range            |
+|   LIKE   |            search for a pattern            |
+|    IN    | define multiple likely values for a column |
 
 Template:
 
