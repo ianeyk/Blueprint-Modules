@@ -69,13 +69,13 @@ CREATE TABLE table_name (
 Example:
 
 ```{r}
-dbGetQuery(conn, "
+dbExecute(conn, "
 
-CREATE TABLE ts_kv_hourly ( 
+CREATE TABLE IF NOT EXISTS ts_kv_example ( 
   entity_id STRING NOT NULL, 
   key INT NOT NULL,
   ts INT NOT NULL, 
-  val FLOAT NOT NULL, 
+  val FLOAT NOT NULL
 )
 
 ")
@@ -107,7 +107,7 @@ Example:
 ```{r}
 dbGetQuery(conn, "
 
-SELECT * FROM device
+SELECT * FROM ts_kv_dictionary
 
 ")
 ```
@@ -145,7 +145,7 @@ INSERT INTO table_name VALUES (value1, value2, value3,...)
 Example:
 
 ```{r}
-dbGetQuery(conn, "
+dbExecute(conn, "
 
 INSERT INTO ts_kv_dictionary VALUES ('rain', '23')
 
@@ -154,7 +154,16 @@ INSERT INTO ts_kv_dictionary VALUES ('rain', '23')
 
 This added a row for "rain" into our dictionary, with a key
 identification (`key_id`) of 23. Now try this function again, but add a
-row for "wildfire" and label that `key_id` as "24."
+row for "wildfire" and label that `key_id` as "24." Then run the
+following command.
+
+```{r}
+dbGetQuery(conn, "
+
+select * from ts_kv_dictionary WHERE key_id = 23
+
+")
+```
 
 ## 4.2.6 Where Clause Command
 
@@ -201,7 +210,7 @@ Example:
 ```{r}
 dbGetQuery(conn, "
 
-SELECT \* FROM ts_kv_hourly WHERE key = 10
+SELECT * FROM ts_kv_hourly WHERE key = 10
 
 ")
 ```
@@ -234,15 +243,15 @@ WHERE key = 7
 ")
 ```
 
-## 4.2.8 Count Number of Entries (Total) Command To understand how the
+## 4.2.8 Count Number of Entries (Total) Command
 
-Count Number of Entries (Total) command is built, review this template.
-Afterward, copy, paste, and run the example template in RStudio to see
-the results.
+To understand how the Count Number of Entries (Total) command is built,
+review this template. Afterward, copy, paste, and run the example
+template in RStudio to see the results.
 
 Template:
 
-```{r}
+```{r eval=FALSE}
 dbGetQuery(conn, "
 
 SELECT COUNT(*) AS total 
@@ -264,11 +273,11 @@ WHERE key = 7 OR 10 AND val > 500
 ")
 ```
 
-## 4.2.9 Combination Queries Command In this section, we will cover six
+## 4.2.9 Combination Queries
 
-ways to use Combination Queries to pull data that match multiple search
-criteria. This will combine the queries we covered in previous sections
-(4.2.3 to 4.2.8)
+In this section, we will cover five ways to use Combination Queries to
+pull data that match multiple search criteria. This will combine the
+queries we covered in previous sections (4.2.3 to 4.2.8)
 
 1.  Count the number of readings where the particulate matter (PM)2.5 is
     greater than 500.
@@ -290,34 +299,22 @@ dbGetQuery(conn, "
 
 SELECT * FROM ts_kv_hourly 
 WHERE key = 13 OR 16 AND 
-ts BETWEEN _____ AND _____
+ts BETWEEN 1599696000000 AND 1601424000000
 
 ")
 ```
 
 Since the timestamp format is given in epoch milliseconds, for the
-BETWEEN values, use this website (Epoch time) to convert the time range
-to epoch timestamps and copy the Timestamp in milliseconds result to
-your query.
+BETWEEN values, use this website ([Epoch
+time](https://www.epochconverter.com/)) to convert the time range to
+epoch timestamps and copy the Timestamp in milliseconds result to your
+query.
 
 For example, if you want to see only the data from between September 5
-and 10, 2020, your last line would be: \`ts BETWEEN 159928200000 AND
-1599721200000;
+and 10, 2020, your last line would be:
+`ts BETWEEN 159928200000 AND 1599721200000`;
 
-3.  Covert timestamp to datetime format.
-
-```{r}
-dbGetQuery(conn, "
-
-SELECT * FROM ts_kv_hourly 
-WHERE key = 13 OR 16 AND 
-datetime(round(ts / 1000), 'unixepoch', 'localtime') 
-BETWEEN 2020-09-10 00:00:00 AND 2020-09-30 23:59:59
-
-")
-```
-
-4.  Find the identification codes for each device managed by the
+3.  Find the identification codes for each device managed by the
     Department of Environmental Quality (DEQ).
 
     Hint: They will be designated under a specific table
@@ -331,27 +328,26 @@ FROM ts_kv_deq
 ")
 ```
 
-5.  Select the data from days where the temperature exceeded 90 degrees
+4.  Select the data from days where the temperature exceeded 100 degrees
     Fahrenheit (F).
 
 ```{r}
 dbGetQuery(conn, "
 
-SELECT * FROM ts_kv 
-WHERE key = 16 AND dbl_v > (90-32) * 5/9; 
+SELECT * FROM ts_kv_hourly
+WHERE key = 16 AND val > (100-32) * 5/9
 
 ")
 ```
 
-6.  Select maximum or minimum readings for PM10 for October 31, 2020.
+5.  Select maximum or minimum readings for PM10 for August 31, 2021.
 
 ```{r}
 dbGetQuery(conn, "
 
-SELECT max(val) FROM ts_kv_hourly 
+SELECT min(val), max(val) FROM ts_kv_hourly 
 WHERE key = 7 AND 
-datetime(round(ts / 1000), 'unixepoch', 'localtime') 
-BETWEEN 2020-10-30 00:00:00 AND 2020-09-30 01:01:01; 
+ts BETWEEN 1630368000000 AND 1630454400000
 
 ")
 ```
