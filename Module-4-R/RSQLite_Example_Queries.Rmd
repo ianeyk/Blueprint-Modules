@@ -54,7 +54,7 @@ need to be defined. Keep reading, and you'll find an example you can
 Template:
 
 ```{r eval=FALSE}
-dbGetQuery(conn, "
+dbExecute(conn, "
 
 CREATE TABLE table_name ( 
   column1 data_type(size) constraint_name,
@@ -135,7 +135,7 @@ RStudio to see the results. Note the following definitions:
 Template:
 
 ```{r eval=FALSE}
-dbGetQuery(conn, "
+dbExecute(conn, "
 
 INSERT INTO table_name VALUES (value1, value2, value3,...)
 
@@ -160,7 +160,8 @@ following command.
 ```{r}
 dbGetQuery(conn, "
 
-select * from ts_kv_dictionary WHERE key_id = 23
+select * from ts_kv_dictionary
+WHERE key_id = 23 OR key_id = 24
 
 ")
 ```
