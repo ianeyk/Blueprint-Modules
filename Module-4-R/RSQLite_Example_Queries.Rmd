@@ -14,8 +14,12 @@ To start, create a connection to the database. Copy, paste, and run this
 command in RStudio:
 
 ```{r}
-# install.packages("RSQLite") # comment this line out if RSQLite is already installed
-library(RSQLite)
+# load the data from the Sensorbot database
+load("C:/dev/sensorbot/sensorbot.RData")
+
+# install or load required packages using pacman
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(pacman, RSQLite, knitr)
 
 conn <- dbConnect(
   drv = RSQLite::SQLite(), 
@@ -25,9 +29,8 @@ conn <- dbConnect(
 
 Note, SQL code is different from our other codes: users cannot type SQL
 code directly into RStudio. It needs to be in quotations and inside of
-parentheses after the command of `dbGetQuery`; see the blue highlight in
-the code as an example. Make every query with the `dbGetQuery` function
-with `conn` as the first argument, like so:
+parentheses after the command of `dbGetQuery`. Make every query with the
+`dbGetQuery` function with `conn` as the first argument, like so:
 
 ```{r}
 dbGetQuery(conn, "SELECT * FROM device LIMIT 10")
@@ -201,7 +204,9 @@ Template:
 ```{r eval=FALSE}
 dbGetQuery(conn, "
 
-SELECT column1,column2 FROM TableName WHERE column_name operator value;
+SELECT column1,column2 
+FROM TableName 
+WHERE column_name [OPERATOR] value
 
 ")
 ```
@@ -225,9 +230,9 @@ RStudio to see the results. Template:
 ```{r eval=FALSE}
 dbGetQuery(conn, "
 
-SELECT max(val) 
+SELECT MAX( val ) 
 FROM TableName 
-WHERE column_name operator value; 
+WHERE column_name [OPERATOR] value;
 
 ")
 ```
@@ -237,7 +242,7 @@ Example:
 ```{r}
 dbGetQuery(conn, "
 
-SELECT max(val) 
+SELECT MAX(val) 
 FROM ts_kv_hourly 
 WHERE key = 7 
 
