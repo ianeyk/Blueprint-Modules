@@ -8,23 +8,13 @@ editor_options:
     wrap: 72
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{r install}
-
-# if you have already installed these libraries, comment these lines out
-# install.packages("tidyverse")
-# install.packages("magrittr")
-
-```
-
 ```{r library}
 
-library(tidyverse)
-library(magrittr)
+# install or load required packages using pacman
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(pacman, tidyverse, magrittr, knitr)
 
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Clone the repo from <https://github.com/ianeyk/Blueprint-Modules.git>

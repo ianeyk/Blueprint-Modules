@@ -1,8 +1,6 @@
-# if you haven't installed these libraries, use 
-# install.packages("tidyverse")
-# install.packages("magrittr")
-library(tidyverse)
-library(magrittr)
+# install or load required packages using pacman
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(pacman, tidyverse, magrittr, knitr)
 
 # Clone the repo from https://github.com/ianeyk/Blueprint-Modules.git
 # and load the file "pmComparison.RData"
