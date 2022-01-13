@@ -71,7 +71,7 @@ Note the following definitions for the Make a Table command:
 
 One last thing to note is that we are using the `dbExecute` command (not
 `dbGetQuery`), because we are making a change to the database (not
-merely querying existing data. dbExecute returns either a 0 if the
+merely querying existing data. `dbExecute` returns either a 0 if the
 command failed or a 1 if it succeeded.
 
 Template:
@@ -343,18 +343,19 @@ LIMIT 100
 ")
 ```
 
-## 4.3.8 Min/Max/Average Values
+## 4.3.8 Min/Max/Total Number/Average Values
 
-The `MIN`, `MAX`, and `AVG` commands return a single value --- the
-minimum, maximum, and average value of the elements in a query. You can
-be as specific as you like with the FROM and WHERE clauses, and you will
-receive only the `MIN`, `MAX`, or `AVG` of those values you selected.
+The `MIN`, `MAX`, `COUNT`, and `AVG` commands return a single value ---
+the minimum, maximum, total number, and average value of the elements in
+a query, respectively. You can be as specific as you like with the FROM
+and WHERE clauses, and you will receive only the `MIN`, `MAX`, `COUNT`,
+or`AVG` of those values you selected.
 
 ```{r eval=FALSE}
 dbGetQuery(conn, "
 
-SELECT MAX( val ) 
-FROM TableName 
+SELECT MAX( column_name )
+FROM table_name
 WHERE ...
 
 ")
@@ -372,18 +373,19 @@ WHERE key = 7
 ")
 ```
 
-## 4.3.9 Count Number of Entries
+## 4.3.9 Distinct Entries
 
-A similar query is to find the total number of entries that satisfy your
-given criteria. For this, use the `COUNT` command in the same way as
-`MIN`, `MAX`, and `AVG`.
+A similar query is to find the distinct, or unique, values in a query.
+Suppose you want to know which sensors are present in the `ts_kv_hourly`
+table. For this, use the `DISTINCT` command in the same location as you
+would `MIN`, `MAX`, `COUNT`, or `AVG`.
 
 Template:
 
 ```{r eval=FALSE}
 dbGetQuery(conn, "
 
-SELECT COUNT(*)
+SELECT DISTINCT( column_name )
 FROM table_name 
 WHERE ...
  
@@ -395,10 +397,8 @@ Example:
 ```{r}
 dbGetQuery(conn, "
 
-SELECT COUNT(*)
-FROM ts_kv_hourly 
-WHERE key = 7
-AND val > 1000
+SELECT DISTINCT( entity_id )
+FROM ts_kv_hourly
 
 ")
 ```
@@ -484,5 +484,29 @@ SELECT MIN(val), MAX(val) FROM ts_kv_hourly
 WHERE key = 7 AND 
 ts BETWEEN 1630368000000 AND 1630454400000
 
+")
+```
+
+```{r eval = FALSE}
+dbExecute(conn, "drop table high_pm25")
+
+dbExecute(conn, "
+CREATE TABLE IF NOT EXISTS high_pm25
+  AS 
+SELECT * FROM ts_kv_hourly
+WHERE key = 10
+AND val > 1000
+")
+
+dbGetQuery(conn, "
+SELECT * FROM high_pm25
+")
+
+dbGetQuery(conn, "
+SELECT min(val), max(val) FROM high_pm25
+")
+
+dbGetQuery(conn, "
+SELECT DISTINCT entity_id FROM high_pm25
 ")
 ```
