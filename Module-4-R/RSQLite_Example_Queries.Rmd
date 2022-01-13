@@ -8,10 +8,10 @@ editor_options:
     wrap: 72
 ---
 
-## 4.2.2 Connect to the Database
+## 4.3.1 Setup
 
-To start, create a connection to the database. Copy, paste, and run this
-command in RStudio:
+Run the code chunk below to connect to the `sensorbot.db` database file.
+We will run queries on the Sensorbot database using SQL commands.
 
 ```{r}
 # load the data from the Sensorbot database
@@ -27,20 +27,39 @@ conn <- dbConnect(
 ) 
 ```
 
-Note, SQL code is different from our other codes: users cannot type SQL
-code directly into RStudio. It needs to be in quotations and inside of
-parentheses after the command of `dbGetQuery`. Make every query with the
-`dbGetQuery` function with `conn` as the first argument, like so:
+Note, SQL code is different from R code: users cannot type SQL code
+directly into RStudio. We will use an R function called `dbGetQuery` to
+perform SQL queries on the database. `dbGetQuery` takes as arguments a
+connection to the database (defined above) and a string containing the
+SQL syntax we wish to execute, like so:
+
+SQL syntax is not sensitive to whitespace, so we can add as many spaces
+or line breaks to our string as we want. Just remember, don't put
+punctuation or commas unless it is part of the SQL syntax.
 
 ```{r}
 dbGetQuery(conn, "SELECT * FROM device LIMIT 10")
 ```
 
-## 4.2.3 Make Table Command
+## 4.3.2 Make Table Command
+
+There are at least two ways to create a new table in SQL. You can
+initialize one from scratch by specifying the names of each of the
+columns you want to create. Each column is associated with a datatype
+and an optional constraint, which dictates what kind of data can be
+inserted into the table. For example, you might want to dictate up front
+that you do not want duplicate values for a column (such as a database
+storing different people's usernames); if this is the case, you might
+want to use the `UNIQUE` constraint on the username column.
+
+Another way to make a table is to copy data from one or more existing
+tables. This is useful if you want to make a backup copy while you mess
+around with the original data, or if you want to collect useful
+information from across tables into one convenient place.
 
 Note the following definitions for the Make a Table command:
 
--   `table_name`: Name of the table to be created.
+-   `new_table_name`: Name of the table to be created.
 -   `column1`: Name of the first column and so on.
 -   `data_type`: Type of data that can be stored in the field.
 -   `size`: Size of the data that can be stored in a column. For
@@ -50,16 +69,18 @@ Note the following definitions for the Make a Table command:
 -   `constraint_name`: Name of the constraint. For example, `NOT NULL`,
     `UNIQUE`, `PRIMARY KEY`.
 
-The following example is a box of template code. Running this will
-result in errors because terms like `data_type` and `constraint_name`
-need to be defined. Keep reading, and you'll find an example you can
+One last thing to note is that we are using the `dbExecute` command (not
+`dbGetQuery`), because we are making a change to the database (not
+merely querying existing data. dbExecute returns either a 0 if the
+command failed or a 1 if it succeeded.
 
 Template:
 
 ```{r eval=FALSE}
+# Template 1: creating a table from scratch by defining column names and types
 dbExecute(conn, "
 
-CREATE TABLE table_name ( 
+CREATE TABLE new_table_name ( 
   column1 data_type(size) constraint_name,
   column2 data_type(size) constraint_name, 
   column3 data_type(size) constraint_name, 
@@ -67,68 +88,51 @@ CREATE TABLE table_name (
 )
 
 ")
-```
 
-Example:
+##--------------------------------------------------------------------------------##
 
-```{r}
+# Template 2: creating a table by copying another table or a subset of another table
 dbExecute(conn, "
 
-CREATE TABLE IF NOT EXISTS ts_kv_example ( 
-  entity_id STRING NOT NULL, 
-  key INT NOT NULL,
-  ts INT NOT NULL, 
-  val FLOAT NOT NULL
-)
+CREATE TABLE IF NOT EXISTS new_table_name
+  AS 
+SELECT column1, column2, column3, ... FROM existing_table_name
 
 ")
 ```
-
-## 4.2.4 Select from Table Command
-
-Follow the same process for the Select from Table command. Review this
-template code to understand the pieces that go into the code needed to
-select from a table (like the table you just created using the template
-code).
-
-Template:
-
-```{r eval=FALSE}
-dbGetQuery(conn, "
-
-SELECT column1, column2 FROM table_name
-
-")
-```
-
-Remember, in SQL, `*` means "everything." Visit these helpful videos if
-you haven't already. Now, copy, paste, and run the following example in
-RStudio.
 
 Example:
 
 ```{r}
-dbGetQuery(conn, "
+# Example 1: creating a table from scratch by defining column names and types
+dbExecute(conn, " 
 
+CREATE TABLE IF NOT EXISTS ts_kv_example (
+  entity_id STRING NOT NULL, 
+  key INT NOT NULL, 
+  ts INT NOT NULL, 
+  val FLOAT NOT NULL
+) 
+
+")
+
+##-------------------------------------------------------------------------------##
+
+# Example 2: creating a table by copying another table or a subset of another table
+dbExecute(conn, "
+
+CREATE TABLE IF NOT EXISTS dictionary_example 
+  AS 
 SELECT * FROM ts_kv_dictionary
 
 ")
 ```
 
-Notice how every column appears and many rows do as well? What part of
-this example query is causing all columns and rows to be returned?
+## 4.3.3 Insert Data Command
 
-Now `SELECT` the first two columns from `ts_kv_dictionary`. What are the
-column names?
-
-Hint: to find the column names, scroll to the top of the `SELECT *`
-output.
-
-## 4.2.5 Insert Data Command
-
-To understand how the Insert Data command is built, review this
-template. Afterward, copy, paste, and run the example template in
-RStudio to see the results. Note the following definitions:
+If you want to add a row of data to a table, use the `INSERT` command.
+You need to provide one value for each column in the table, and the data
+types must match the data types of the columns.
 
 -   `table_name`: The name of the table.
 
@@ -140,7 +144,8 @@ Template:
 ```{r eval=FALSE}
 dbExecute(conn, "
 
-INSERT INTO table_name VALUES (value1, value2, value3,...)
+INSERT INTO table_name
+  VALUES (value1, value2, value3,...)
 
 ")
 ```
@@ -150,30 +155,63 @@ Example:
 ```{r}
 dbExecute(conn, "
 
-INSERT INTO ts_kv_dictionary VALUES ('rain', '23')
+INSERT INTO dictionary_example 
+  VALUES ('rain', '60')
 
 ")
 ```
 
 This added a row for "rain" into our dictionary, with a key
-identification (`key_id`) of 23. Now try this function again, but add a
-row for "wildfire" and label that `key_id` as "24." Then run the
-following command.
+identification (`key_id`) of 60. Now try this function again, but add a
+row for "wildfire" and label that `key_id` as 61. Then run the following
+command.
 
 ```{r}
 dbGetQuery(conn, "
 
-select * from ts_kv_dictionary
-WHERE key_id = 23 OR key_id = 24
+SELECT * FROM dictionary_example
+WHERE key_id = 60 OR key_id = 61
 
 ")
 ```
 
-## 4.2.6 Where Clause Command
+## 4.3.4 Select Statement
 
-To understand how the Where Clause command is constructed, review this
-template. Afterward, copy, paste, and run the example template in
-RStudio to see the results. Note the following definitions:
+The `SELECT` statement is the most important command in SQL. It allows
+you to formulate a query to retrieve anything from a single precise
+piece of information to an entire table (or multiple tables). Any query
+starts with `SELECT ... FROM`, and there are many options for refining
+the query from there.
+
+Use the following template if you want to select one or more specific
+columns from a table. If you wish to select all columns from a table,
+use `*` to represent "everything"
+
+Template:
+
+```{r eval=FALSE}
+dbGetQuery(conn, "
+
+SELECT column1, column2 FROM table_name
+
+")
+```
+
+Example:
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT * FROM ts_kv_dictionary
+
+")
+```
+
+## 4.3.5 Where Clause
+
+You can use the `WHERE` clause to filter which rows to return from a
+table. You can construct highly complex queries using logical operators
+like `AND` and `OR`.
 
 -   `column1` , `column2`: Fields in the table.
 
@@ -214,25 +252,110 @@ WHERE column_name [OPERATOR] value
 Example:
 
 ```{r}
+# note that "--" denotes a comment in SQL
 dbGetQuery(conn, "
 
-SELECT * FROM ts_kv_hourly WHERE key = 10
+SELECT * FROM ts_kv_hourly
+WHERE key = 10
+AND ts > 1577880000000 -- timestamps after Jan 1, 2020
 
 ")
 ```
 
-## 4.2.7 Min/Max Values Command
+## 4.3.6 Limit
 
-To understand how the Min/Max Values command is built, review this
-template. Afterward, copy, paste, and run the example template in
-RStudio to see the results. Template:
+The previous query returned upwards of 250,000 rows. If we don't need
+all this data, we can set a `LIMIT` on how many rows are returned. A
+note of caution: SQL returns rows in arbitrary order; the 100 rows that
+we get from this example are not necessarily the "first" 100 rows in the
+database. To get top 100 values ranked in a certain order, use
+`ORDER BY` in the next section.
+
+Template:
+
+```{r eval=FALSE}
+dbGetQuery(conn, "
+
+SELECT column1,column2 
+FROM table_name
+WHERE 
+  ...
+
+LIMIT number
+
+")
+```
+
+Example:
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT * FROM ts_kv_hourly
+WHERE key = 10
+AND ts > 1577880000000 -- timestamps after Jan 1, 2020
+LIMIT 100
+
+")
+```
+
+## 4.3.7 Order By
+
+Use the `ORDER BY` clause to sort the results of a query based on the
+values in a specific column. For example, if we want to arrange the
+entries according to the timestamp, we would use the following query.
+Note that the `ORDER BY` clause comes before the `LIMIT`, if you are
+using one.
+
+You can sort in ascending or descending order (this determines whether
+the highest or lowest value appears first). The default method is
+ascending (low to high). If you wish to sort in descending order (high
+to low), then use the keyword `DESC` after the name of the column you
+are sorting by.
+
+Template:
+
+```{r eval=FALSE}
+dbGetQuery(conn, "
+
+SELECT column1,column2 
+FROM table_name
+WHERE 
+  ...
+
+ORDER BY column1
+LIMIT number
+
+")
+```
+
+Example:
+
+```{r}
+dbGetQuery(conn, "
+
+SELECT * FROM ts_kv_hourly
+WHERE key = 10
+AND ts > 1577880000000 -- timestamps after Jan 1, 2020
+ORDER BY ts DESC
+LIMIT 100
+
+")
+```
+
+## 4.3.8 Min/Max/Average Values
+
+The `MIN`, `MAX`, and `AVG` commands return a single value --- the
+minimum, maximum, and average value of the elements in a query. You can
+be as specific as you like with the FROM and WHERE clauses, and you will
+receive only the `MIN`, `MAX`, or `AVG` of those values you selected.
 
 ```{r eval=FALSE}
 dbGetQuery(conn, "
 
 SELECT MAX( val ) 
 FROM TableName 
-WHERE column_name [OPERATOR] value;
+WHERE ...
 
 ")
 ```
@@ -244,25 +367,25 @@ dbGetQuery(conn, "
 
 SELECT MAX(val) 
 FROM ts_kv_hourly 
-WHERE key = 7 
+WHERE key = 7
 
 ")
 ```
 
-## 4.2.8 Count Number of Entries (Total) Command
+## 4.3.9 Count Number of Entries
 
-To understand how the Count Number of Entries (Total) command is built,
-review this template. Afterward, copy, paste, and run the example
-template in RStudio to see the results.
+A similar query is to find the total number of entries that satisfy your
+given criteria. For this, use the `COUNT` command in the same way as
+`MIN`, `MAX`, and `AVG`.
 
 Template:
 
 ```{r eval=FALSE}
 dbGetQuery(conn, "
 
-SELECT COUNT(*) AS total 
+SELECT COUNT(*)
 FROM table_name 
-WHERE column_name operator value; 
+WHERE ...
  
 ")
 ```
@@ -272,21 +395,22 @@ Example:
 ```{r}
 dbGetQuery(conn, "
 
-SELECT COUNT(*) AS total 
+SELECT COUNT(*)
 FROM ts_kv_hourly 
-WHERE key = 7 OR 10 AND val > 500 
+WHERE key = 7
+AND val > 1000
 
 ")
 ```
 
-## 4.2.9 Combination Queries
+## 4.3.10 Combination Queries
 
-In this section, we will cover five ways to use Combination Queries to
-pull data that match multiple search criteria. This will combine the
-queries we covered in previous sections (4.2.3 to 4.2.8)
+In this section, we will cover five ways to use combination queries to
+pull data that match search criteria based on genuine questions about
+the database. This will combine the queries we covered in previous
+sections.
 
-1.  Count the number of readings where the particulate matter (PM)2.5 is
-    greater than 500.
+#### 1. Count the number of readings where the particulate matter (PM)2.5 is greater than 500.
 
 ```{r}
 dbGetQuery(conn, "
@@ -298,7 +422,7 @@ WHERE key = 10 AND val > 500
 ")
 ```
 
-2.  Select the PM2.5 and the temperature for September 10 to 30, 2020.
+#### 2. Select the PM2.5 and the temperature for September 10 to 30, 2020.
 
 ```{r eval=FALSE}
 dbGetQuery(conn, "
@@ -316,14 +440,18 @@ time](https://www.epochconverter.com/)) to convert the time range to
 epoch timestamps and copy the Timestamp in milliseconds result to your
 query.
 
+![Screenshot from
+[epochconverter.com](https://www.epochconverter.com/)](epoch_time_converter.png)
+
 For example, if you want to see only the data from between September 5
 and 10, 2020, your last line would be:
 `ts BETWEEN 159928200000 AND 1599721200000`;
 
-3.  Find the identification codes for each device managed by the
+#### 3. Find the identification codes for each device managed by the
+
     Department of Environmental Quality (DEQ).
 
-    Hint: They will be designated under a specific table
+    Hint: They will be designated under their own table
 
 ```{r}
 dbGetQuery(conn, "
@@ -334,7 +462,8 @@ FROM ts_kv_deq
 ")
 ```
 
-4.  Select the data from days where the temperature exceeded 100 degrees
+#### 4. Select the data from days where the temperature exceeded 100 degrees
+
     Fahrenheit (F).
 
 ```{r}
@@ -346,12 +475,12 @@ WHERE key = 16 AND val > (100-32) * 5/9
 ")
 ```
 
-5.  Select maximum or minimum readings for PM10 for August 31, 2021.
+#### 5. Select maximum and minimum readings for PM10 for August 31, 2021.
 
 ```{r}
 dbGetQuery(conn, "
 
-SELECT min(val), max(val) FROM ts_kv_hourly 
+SELECT MIN(val), MAX(val) FROM ts_kv_hourly
 WHERE key = 7 AND 
 ts BETWEEN 1630368000000 AND 1630454400000
 
