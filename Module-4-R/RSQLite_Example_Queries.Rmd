@@ -266,9 +266,12 @@ AND ts > 1577880000000 -- timestamps after Jan 1, 2020
 
 The previous query returned upwards of 250,000 rows. If we don't need
 all this data, we can set a `LIMIT` on how many rows are returned. A
-note of caution: SQL returns rows in arbitrary order; the 100 rows that
-we get from this example are not necessarily the "first" 100 rows in the
-database. To get top 100 values ranked in a certain order, use
+limit is often useful when you are just exploring or are in the process
+of refining a complex query on a large database.
+
+A note of caution: SQL returns rows in arbitrary order, so the 100 rows
+that we get from this example are not necessarily the "first" 100 rows
+in the database. To get top 100 values ranked in a certain order, use
 `ORDER BY` in the next section.
 
 Template:
